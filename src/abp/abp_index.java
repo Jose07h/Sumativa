@@ -1056,7 +1056,7 @@ public class abp_index extends javax.swing.JFrame {
                         String r = con.procedure6(b,nom_e,ap_e,am_e,a,puesto_e);
                         if (r == null) {
                             JOptionPane.showMessageDialog(null, "Actualizado correctamente");
-                            cargar_put();
+                            cargar_emp();
                             e_id="";nom_e= "";ap_e= "";am_e= "";edad_e= "";puesto_e = "";
                         } else {
                             JOptionPane.showMessageDialog(null, "" + r);
@@ -1085,7 +1085,7 @@ public class abp_index extends javax.swing.JFrame {
             String sql = "delete from empleados where id=" + id_em + "";
             try {
                 con.operacion(sql);
-                cargar_put();
+                cargar_emp();
                 JOptionPane.showMessageDialog(null, "eliminado correctamente");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, "error");
@@ -1115,7 +1115,7 @@ public class abp_index extends javax.swing.JFrame {
                         String r = con.procedure5(nom_e,ap_e,am_e,a,puesto_e);
                         if (r == null) {
                             JOptionPane.showMessageDialog(null, "Ingresado correctamente");
-                            cargar_put();
+                            cargar_emp();
                             nom_e= "";ap_e= "";am_e= "";edad_e= "";puesto_e = "";
                         } else {
                             JOptionPane.showMessageDialog(null, "" + r);
