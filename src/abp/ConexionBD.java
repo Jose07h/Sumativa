@@ -130,7 +130,7 @@ public String procedure5(String a,String b,String c,int d,String e) {
 public String procedure6(int n,String a,String b,String c,int d,String e) {
         String resultado = null;
         try {
-            CallableStatement proc = conn.prepareCall(" CALL actualiza_empleados(?,?,?,?,?,?) ");
+            CallableStatement proc = conn.prepareCall(" CALL actualiza_empleados(?,?,?,?,?,?,?)");
             proc.setInt("id_e", n);
             proc.setString("nombre_e", a);
             proc.setString("ap_e", b);

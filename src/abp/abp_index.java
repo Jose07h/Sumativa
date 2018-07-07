@@ -37,7 +37,7 @@ public class abp_index extends javax.swing.JFrame {
         cargar_vent();
         combos();
         String cta = "";
-        for (int i = 17; i < 46; i++) {
+        for (int i = 17; i < 61; i++) {
             e_edad.addItem("" + i);
         }
         p_1.setVisible(true);
@@ -1040,15 +1040,15 @@ public class abp_index extends javax.swing.JFrame {
         ap_e = e_ap.getText();
         am_e = e_am.getText();
         edad_e = e_edad.getSelectedItem().toString();
-        puesto_e = e_edad.getSelectedItem().toString();
+        puesto_e = e_puesto.getSelectedItem().toString();
         if (nom_e.equals("")) {
             JOptionPane.showMessageDialog(null, "es nesesaio insertar nombre");
         } else {
             if (ap_e.equals("")) {
-                JOptionPane.showMessageDialog(null, "es nesesaio insertar cantidad");
+                JOptionPane.showMessageDialog(null, "es nesesaio insertar 1er Apellido");
             } else {
                 if (am_e.equals("")) {
-                    JOptionPane.showMessageDialog(null, "es nesesaio insertar descripcion");
+                    JOptionPane.showMessageDialog(null, "es nesesaio insertar 2do Apellido");
                 } else {
                     try {
                         int a = Integer.parseInt(edad_e);
@@ -1082,7 +1082,7 @@ public class abp_index extends javax.swing.JFrame {
         if (id_em == "") {
             JOptionPane.showMessageDialog(null, "No ha selecionado una direccion dentro del registro");
         } else {
-            String sql = "delete from empleados where id=" + id_em + "";
+            String sql = "delete from personal where id=" + id_em + "";
             try {
                 con.operacion(sql);
                 cargar_emp();
@@ -1100,7 +1100,7 @@ public class abp_index extends javax.swing.JFrame {
         ap_e = e_ap.getText();
         am_e = e_am.getText();
         edad_e = e_edad.getSelectedItem().toString();
-        puesto_e = e_edad.getSelectedItem().toString();
+        puesto_e = e_puesto.getSelectedItem().toString();
         if (nom_e.equals("")) {
             JOptionPane.showMessageDialog(null, "es nesesaio insertar nombre");
         } else {
@@ -1270,6 +1270,7 @@ public class abp_index extends javax.swing.JFrame {
                     if (r == null) {
                         JOptionPane.showMessageDialog(null, "Actualizado correctamente");
                         cargar_put();
+                        e_puesto.removeAllItems();
                         combos();
                         p_descc = "";
                     } else {
@@ -1293,6 +1294,7 @@ public class abp_index extends javax.swing.JFrame {
             try {
                 con.operacion(sql);
                 cargar_put();
+                e_puesto.removeAllItems();
                 combos();
                 JOptionPane.showMessageDialog(null, "eliminado correctamente");
             } catch (Exception ex) {
@@ -1314,6 +1316,7 @@ public class abp_index extends javax.swing.JFrame {
                 if (r == null) {
                     JOptionPane.showMessageDialog(null, "agreagdo correctamente");
                     cargar_put();
+                    e_puesto.removeAllItems();
                     combos();
                     p_descc = "";
                 } else {

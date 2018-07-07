@@ -161,17 +161,17 @@ end if;
 END $
 DELIMITER ;
 
+
 DROP PROCEDURE IF EXISTs actualiza_empleados;
 DELIMITER $
 CREATE PROCEDURE actualiza_empleados(in id_e int,in nombre_e varchar(50) ,in ap_e varchar(30),in am_e varchar(30)
 								  ,in edad_e int,in puesto_e varchar(30), out res varchar(50))BEGIN
 DECLARE ce int;
 DECLARE cp int;
-declare res int;
 set cp= (select id from puestos where puesto=puesto_e);
 set ce= (select id from personal where nombre=nombre_e and ap=ap_e and am=am_e and edad=edad_e and id_puesto=cp);
 if	(ce is null)then
-	update personal set nombre=nombre_e,ap=ap_e,am=am_e,edad=edad_e,id_puesto=cp ;
+	update personal set nombre=nombre_e,ap=ap_e,am=am_e,edad=edad_e,id_puesto=cp where id=id_e;
 else 
 	set res='Empleado existente';
 	select res;
