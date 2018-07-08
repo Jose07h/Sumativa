@@ -48,8 +48,13 @@ public class ConexionBD {
 
     public void proced(String sentencia) throws Exception//insertacion de datos
     {
-        sqll = conn.prepareCall(sentencia);
-        sqll.executeUpdate();
+        try {
+            sqll = conn.prepareCall(sentencia);
+            sqll.executeUpdate();
+            sqll.close();
+        } catch (SQLException sqle) {
+            System.out.println("Error en la ejecución "+ sqle.getErrorCode() + " " + sqle.getMessage());
+        }
     }
 
     public String procedure1(String a, String b) {
@@ -67,7 +72,7 @@ public class ConexionBD {
         return resultado;
     }
 
-    public String procedure2(int a, String b,String c) {
+    public String procedure2(int a, String b, String c) {
         String resultado = null;
         try {
             CallableStatement proc = conn.prepareCall(" CALL actualiza_direciones(?,?,?,?) ");
@@ -96,7 +101,8 @@ public class ConexionBD {
         }
         return resultado;
     }
-    public String procedure4(int a,String b) {
+
+    public String procedure4(int a, String b) {
         String resultado = null;
         try {
             CallableStatement proc = conn.prepareCall(" CALL actualiza_puestos(?,?,?) ");
@@ -106,11 +112,12 @@ public class ConexionBD {
             proc.execute();
             resultado = proc.getString("res");
         } catch (Exception e) {
-            System.out.println(""+e);
+            System.out.println("" + e);
         }
         return resultado;
     }
-public String procedure5(String a,String b,String c,int d,String e) {
+
+    public String procedure5(String a, String b, String c, int d, String e) {
         String resultado = null;
         try {
             CallableStatement proc = conn.prepareCall(" CALL inserta_empleados(?,?,?,?,?,?) ");
@@ -123,11 +130,12 @@ public String procedure5(String a,String b,String c,int d,String e) {
             proc.execute();
             resultado = proc.getString("res");
         } catch (Exception f) {
-            System.out.println(""+f);
+            System.out.println("" + f);
         }
         return resultado;
     }
-public String procedure6(int n,String a,String b,String c,int d,String e) {
+
+    public String procedure6(int n, String a, String b, String c, int d, String e) {
         String resultado = null;
         try {
             CallableStatement proc = conn.prepareCall(" CALL actualiza_empleados(?,?,?,?,?,?,?)");
@@ -141,10 +149,27 @@ public String procedure6(int n,String a,String b,String c,int d,String e) {
             proc.execute();
             resultado = proc.getString("res");
         } catch (Exception f) {
-            System.out.println(""+f);
+            System.out.println("" + f);
         }
         return resultado;
     }
+
+    public String procedure7(int a, String b,int c) {
+        String resultado = null;
+        try {
+            CallableStatement proc = conn.prepareCall(" CALL comprar(?,?,?,?)");
+            proc.setInt("id_t", a);
+            proc.setString("pro", b);
+            proc.setInt("can", c);
+            proc.registerOutParameter("res", Types.VARCHAR);
+            proc.execute();
+            resultado = proc.getString("res");
+        } catch (Exception f) {
+            System.out.println("" + f);
+        }
+        return resultado;
+    }
+    
     public static ResultSet consultar(String sentenciaSQL)//select*from
     {
         ResultSet res = null;

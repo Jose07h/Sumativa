@@ -1,11 +1,14 @@
 package abp;
 
+import java.awt.event.KeyEvent;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class abp_index extends javax.swing.JFrame {
 
@@ -14,16 +17,23 @@ public class abp_index extends javax.swing.JFrame {
     DefaultTableModel model;
     DefaultComboBoxModel modelo = new DefaultComboBoxModel();
     CallableStatement rs = null;
-    String[] e_pr = {"codigo", " nombre", "cantidad", "tipo", "descripcion"};
+    String[] e_pr = {"codigo", " nombre", "cantidad", "precio", "tipo", "descripcion"};
     String[] e_p = {"codigo", "Pueblo", "Nombre de la calle"};
     String[] e_dir = {"codigo", "Descripcion"};
     String[] e_emp = {"codigo", "nombre ", "ap", " am", "edad", "puesto"};
-    String[] e_vent = {"codigo", "producto", "cantidad", "direciones", "", "empleado", "", ""};
+    String[] e_vent = {"codigo", "productos", "total", "direciones", "", "empleado", "", ""};
+    String[] ev = {"codigo", "Productoo", "Cantidad"};
     String dte[] = new String[50];
     String dtps[] = new String[50];
     String dtpst[] = new String[50];
     String dtem[] = new String[50];
     String dtven[] = new String[50];
+    String dtlista[] = new String[50];
+    String productol[] = new String[50];
+    String cantidadd[] = new String[50];
+    String prod, cant;
+    int c = 1;
+    String id_ventas = "", id_productos = "", id_empleados = "", id_puestos = "", id_direcion = "";
 
     public abp_index() {
         initComponents();
@@ -36,6 +46,7 @@ public class abp_index extends javax.swing.JFrame {
         cargar_dir();
         cargar_vent();
         combos();
+        cargar_lista();
         String cta = "";
         for (int i = 17; i < 61; i++) {
             e_edad.addItem("" + i);
@@ -45,16 +56,35 @@ public class abp_index extends javax.swing.JFrame {
         p_3.setVisible(false);
         p_4.setVisible(false);
         p_5.setVisible(false);
-        
+
     }
-    public void combos(){
+
+    public String comprobar(String texto) {
+        String patrone = "([0-9]+)";
+        String salida = "";
+        Pattern patron = Pattern.compile(patrone);
+        Matcher matcher;
+        matcher = patron.matcher(texto);
+
+        while (matcher.find()) {
+            String tipo1 = matcher.group(1);
+            if (tipo1 != null) {
+                salida = "";
+            } else {
+                salida = "solo numeros";
+            }
+        }
+        return salida;
+    }
+
+    public void combos() {
         try {
             datosbase = con.consultar("select * from tipos");
             while (datosbase.next()) {
                 pc_tipos.addItem(datosbase.getString("descripcion"));
             }
         } catch (SQLException e) {
-            System.out.println(""+e);
+            System.out.println("" + e);
         }
         try {
             datosbase = con.consultar("select * from puestos");
@@ -62,7 +92,23 @@ public class abp_index extends javax.swing.JFrame {
                 e_puesto.addItem(datosbase.getString("puesto"));
             }
         } catch (SQLException e) {
-            System.out.println(""+e);
+            System.out.println("" + e);
+        }
+        try {
+            datosbase = con.consultar("select nombre from productos");
+            while (datosbase.next()) {
+                lista_p.addItem(datosbase.getString("nombre"));
+            }
+        } catch (SQLException e) {
+            System.out.println("" + e);
+        }
+        try {
+            datosbase = con.consultar("select pueblo from direciones");
+            while (datosbase.next()) {
+                direcion.addItem(datosbase.getString("pueblo"));
+            }
+        } catch (SQLException e) {
+            System.out.println("" + e);
         }
     }
 
@@ -86,17 +132,19 @@ public class abp_index extends javax.swing.JFrame {
         }
 
     }
+
     public void cargar_pro() {
         model = new DefaultTableModel(null, e_pr);
-        String sql = "select productos.id,nombre,cantidad,tipos.descripcion ,productos.descripcion from productos,tipos where productos.id_tipo=tipos.id";
+        String sql = "select productos.id,nombre,cantidad,precio,tipos.descripcion ,productos.descripcion from productos,tipos where productos.id_tipo=tipos.id";
         try {
             datosbase = con.consultar(sql);
             while (datosbase.next()) {
                 dte[0] = "" + datosbase.getString("id");
                 dte[1] = "" + datosbase.getString("nombre");
                 dte[2] = "" + datosbase.getString("cantidad");
-                dte[3] = "" + datosbase.getString("tipos.descripcion");
-                dte[4] = "" + datosbase.getString("productos.descripcion");
+                dte[3] = "" + datosbase.getString("precio");
+                dte[4] = "" + datosbase.getString("tipos.descripcion");
+                dte[5] = "" + datosbase.getString("productos.descripcion");
                 model.addRow(dte);
             }
 
@@ -104,9 +152,9 @@ public class abp_index extends javax.swing.JFrame {
         } catch (SQLException e) {
             JOptionPane.showInputDialog(null, e);
         }
-        
 
     }
+
     public void cargar_dir() {
         model = new DefaultTableModel(null, e_p);
         String sql = "select * from direciones";
@@ -123,6 +171,7 @@ public class abp_index extends javax.swing.JFrame {
             JOptionPane.showInputDialog(null, e);
         }
     }
+
     public void cargar_put() {
         model = new DefaultTableModel(null, e_dir);
         String sql = "select * from puestos";
@@ -133,26 +182,21 @@ public class abp_index extends javax.swing.JFrame {
                 dtpst[1] = "" + datosbase.getString("puesto");
                 model.addRow(dtpst);
             }
-
             t_puestos.setModel(model);
         } catch (SQLException e) {
             JOptionPane.showInputDialog(null, e);
         }
     }
+
     public void cargar_vent() {
         model = new DefaultTableModel(null, e_vent);
-        String sql = "select ventas.id,productos.nombre,ventas.cantidad,direciones.pueblo,"
-                + "direciones.calle,personal.nombre,personal.am,personal.ap  "
-                + "from ventas,personal,direciones,productos  "
-                + "where ventas.id_persona=personal.id "
-                + "and ventas.direccion=direciones.id "
-                + "and ventas.id_producto=productos.id";
+        String sql = "select ventas.id,GROUP_CONCAT(productos.nombre) as pro,total ,direciones.pueblo, direciones.calle,personal.nombre,personal.am,personal.ap from ventas,personal,direciones,productos,asigna_pro where ventas.id_persona=personal.id and ventas.direccion=direciones.id  and ventas.id=asigna_pro.id_venta and asigna_pro.id_producto=productos.id group by ventas.id";
         try {
             datosbase = con.consultar(sql);
             while (datosbase.next()) {
                 dtven[0] = "" + datosbase.getString("ventas.id");
-                dtven[1] = "" + datosbase.getString("productos.nombre");
-                dtven[2] = "" + datosbase.getString("ventas.cantidad");
+                dtven[1] = "" + datosbase.getString("pro");
+                dtven[2] = "" + datosbase.getString("total");
                 dtven[3] = "" + datosbase.getString("direciones.pueblo");
                 dtven[4] = "" + datosbase.getString("direciones.calle");
                 dtven[5] = "" + datosbase.getString("personal.nombre");
@@ -162,6 +206,23 @@ public class abp_index extends javax.swing.JFrame {
             }
 
             t_ventas.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showInputDialog(null, e);
+        }
+    }
+
+    public void cargar_lista() {
+        model = new DefaultTableModel(null, ev);
+        String sql = "select * from p";
+        try {
+            datosbase = con.consultar(sql);
+            while (datosbase.next()) {
+                dtlista[0] = "" + datosbase.getString("id");
+                dtlista[1] = "" + datosbase.getString("nombre");
+                dtlista[2] = "" + datosbase.getString("cantidad");
+                model.addRow(dtlista);
+            }
+            lista.setModel(model);
         } catch (SQLException e) {
             JOptionPane.showInputDialog(null, e);
         }
@@ -185,13 +246,14 @@ public class abp_index extends javax.swing.JFrame {
         n_emp = new javax.swing.JLabel();
         bus_p = new javax.swing.JTextField();
         p_nom = new javax.swing.JTextField();
-        p_can = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         p_des = new javax.swing.JTextField();
         pc_tipos = new javax.swing.JComboBox<>();
-        id = new javax.swing.JLabel();
         jLabel31 = new javax.swing.JLabel();
+        jLabel23 = new javax.swing.JLabel();
+        p_precio = new javax.swing.JTextField();
+        p_can = new javax.swing.JTextField();
         p_2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         t_empleados = new javax.swing.JTable();
@@ -217,24 +279,22 @@ public class abp_index extends javax.swing.JFrame {
         p_3 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         t_ventas = new javax.swing.JTable();
-        jButton14 = new javax.swing.JButton();
-        jButton15 = new javax.swing.JButton();
-        jButton16 = new javax.swing.JButton();
-        jButton17 = new javax.swing.JButton();
         jLabel13 = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+        bus_ventas = new javax.swing.JTextField();
+        jLabel33 = new javax.swing.JLabel();
+        lista_p = new javax.swing.JComboBox<>();
+        jSeparator1 = new javax.swing.JSeparator();
+        cobrar = new javax.swing.JButton();
         jLabel14 = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
-        jLabel16 = new javax.swing.JLabel();
-        n_emp2 = new javax.swing.JLabel();
-        bus_ventas = new javax.swing.JTextField();
-        p_nom2 = new javax.swing.JTextField();
-        p_can2 = new javax.swing.JTextField();
-        jLabel17 = new javax.swing.JLabel();
+        cantidad = new javax.swing.JTextField();
+        direcion = new javax.swing.JComboBox<>();
+        jButton14 = new javax.swing.JButton();
         jLabel18 = new javax.swing.JLabel();
-        p_des2 = new javax.swing.JTextField();
-        pc_tipos2 = new javax.swing.JComboBox<>();
-        id2 = new javax.swing.JLabel();
-        jLabel33 = new javax.swing.JLabel();
+        jButton16 = new javax.swing.JButton();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        lista = new javax.swing.JTable();
         p_4 = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         t_puestos = new javax.swing.JTable();
@@ -248,7 +308,6 @@ public class abp_index extends javax.swing.JFrame {
         n_emp3 = new javax.swing.JLabel();
         bus_puestos = new javax.swing.JTextField();
         p_descripcion = new javax.swing.JTextField();
-        id_pstt = new javax.swing.JLabel();
         jLabel34 = new javax.swing.JLabel();
         p_5 = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
@@ -265,7 +324,6 @@ public class abp_index extends javax.swing.JFrame {
         bus_direciones = new javax.swing.JTextField();
         d_pueblo = new javax.swing.JTextField();
         d_calle = new javax.swing.JTextField();
-        id_dir = new javax.swing.JLabel();
         jLabel35 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         jButton5 = new javax.swing.JButton();
@@ -273,6 +331,7 @@ public class abp_index extends javax.swing.JFrame {
         jButton7 = new javax.swing.JButton();
         jButton8 = new javax.swing.JButton();
         jButton9 = new javax.swing.JButton();
+        jButton15 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 0, 0));
@@ -368,25 +427,27 @@ public class abp_index extends javax.swing.JFrame {
         });
         p_1.add(bus_p, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 210, 180, 30));
         p_1.add(p_nom, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 40, 120, 30));
-        p_1.add(p_can, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 40, 60, 30));
 
         jLabel6.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel6.setText("Tipo");
         p_1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 40, 30, 30));
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        jLabel3.setText("Descripcion");
-        p_1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 90, 70, 30));
+        jLabel3.setText("Precio");
+        p_1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 130, 40, 30));
         p_1.add(p_des, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 90, 510, 30));
 
         p_1.add(pc_tipos, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 40, 180, 30));
 
-        id.setText("id");
-        p_1.add(id, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 150, 40, 20));
-
         jLabel31.setFont(new java.awt.Font("Times New Roman", 1, 24)); // NOI18N
         jLabel31.setText("Productos");
         p_1.add(jLabel31, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 4, 200, 30));
+
+        jLabel23.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel23.setText("Descripcion");
+        p_1.add(jLabel23, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 90, 70, 30));
+        p_1.add(p_precio, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 130, 120, 30));
+        p_1.add(p_can, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 40, 70, 30));
 
         getContentPane().add(p_1, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 10, 750, 430));
 
@@ -531,57 +592,14 @@ public class abp_index extends javax.swing.JFrame {
         });
         jScrollPane3.setViewportView(t_ventas);
 
-        p_3.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 260, 710, 160));
-
-        jButton14.setIcon(new javax.swing.ImageIcon(getClass().getResource("/abp/add.jpg"))); // NOI18N
-        jButton14.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton14ActionPerformed(evt);
-            }
-        });
-        p_3.add(jButton14, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 190, 60, 60));
-
-        jButton15.setIcon(new javax.swing.ImageIcon(getClass().getResource("/abp/actualizar.jpg"))); // NOI18N
-        jButton15.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton15ActionPerformed(evt);
-            }
-        });
-        p_3.add(jButton15, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 130, 60, 60));
-
-        jButton16.setIcon(new javax.swing.ImageIcon(getClass().getResource("/abp/eliminar.jpg"))); // NOI18N
-        jButton16.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton16ActionPerformed(evt);
-            }
-        });
-        p_3.add(jButton16, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 70, 60, 60));
-
-        jButton17.setIcon(new javax.swing.ImageIcon(getClass().getResource("/abp/guardar1.jpg"))); // NOI18N
-        jButton17.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton17ActionPerformed(evt);
-            }
-        });
-        p_3.add(jButton17, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 10, 60, 60));
+        p_3.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 280, 710, 130));
 
         jLabel13.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        jLabel13.setText("BUSCAR");
-        p_3.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 220, 70, 21));
-
-        jLabel14.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        jLabel14.setText("Nombre");
-        p_3.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 40, 50, 24));
-
-        jLabel15.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        jLabel15.setText("Cantidad");
-        p_3.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 40, 50, 24));
+        jLabel13.setText("Cantidad");
+        p_3.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 140, 70, 20));
 
         jLabel16.setText("numero");
         p_3.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 140, 0, 26));
-
-        n_emp2.setBackground(new java.awt.Color(0, 0, 51));
-        p_3.add(n_emp2, new org.netbeans.lib.awtextra.AbsoluteConstraints(322, 154, 152, 26));
 
         bus_ventas.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -593,27 +611,75 @@ public class abp_index extends javax.swing.JFrame {
                 bus_ventasKeyPressed(evt);
             }
         });
-        p_3.add(bus_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 210, 180, 30));
-        p_3.add(p_nom2, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 40, 120, 30));
-        p_3.add(p_can2, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 40, 60, 30));
-
-        jLabel17.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        jLabel17.setText("Tipo");
-        p_3.add(jLabel17, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 40, 30, 30));
-
-        jLabel18.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        jLabel18.setText("Descripcion");
-        p_3.add(jLabel18, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 90, 70, 30));
-        p_3.add(p_des2, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 90, 510, 30));
-
-        p_3.add(pc_tipos2, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 20, 180, 30));
-
-        id2.setText("id");
-        p_3.add(id2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 150, 40, 20));
+        p_3.add(bus_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 240, 220, 30));
 
         jLabel33.setFont(new java.awt.Font("Times New Roman", 1, 24)); // NOI18N
         jLabel33.setText("Ventas");
         p_3.add(jLabel33, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 4, 200, 30));
+
+        p_3.add(lista_p, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 70, 170, 30));
+        p_3.add(jSeparator1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 230, 720, 10));
+
+        cobrar.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
+        cobrar.setText("Cobrar");
+        cobrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cobrarActionPerformed(evt);
+            }
+        });
+        p_3.add(cobrar, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 200, 110, 30));
+
+        jLabel14.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel14.setText("BUSCAR");
+        p_3.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 240, 70, 30));
+
+        jLabel15.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel15.setText("Producto");
+        p_3.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 70, 70, 20));
+        p_3.add(cantidad, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 130, 170, 30));
+
+        p_3.add(direcion, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 170, 280, 30));
+
+        jButton14.setBackground(new java.awt.Color(204, 204, 255));
+        jButton14.setIcon(new javax.swing.ImageIcon(getClass().getResource("/abp/mas.jpg"))); // NOI18N
+        jButton14.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton14ActionPerformed(evt);
+            }
+        });
+        p_3.add(jButton14, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 100, 50, 50));
+
+        jLabel18.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        jLabel18.setText("Direccion");
+        p_3.add(jLabel18, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 150, 120, 20));
+
+        jButton16.setIcon(new javax.swing.ImageIcon(getClass().getResource("/abp/menoss.jpg"))); // NOI18N
+        jButton16.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton16ActionPerformed(evt);
+            }
+        });
+        p_3.add(jButton16, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 50, 50, 50));
+
+        lista.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        lista.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                listaMouseClicked(evt);
+            }
+        });
+        jScrollPane7.setViewportView(lista);
+
+        p_3.add(jScrollPane7, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 10, 300, 140));
 
         getContentPane().add(p_3, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 10, 750, 430));
 
@@ -703,9 +769,6 @@ public class abp_index extends javax.swing.JFrame {
         });
         p_4.add(bus_puestos, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 210, 180, 30));
         p_4.add(p_descripcion, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 60, 180, 30));
-
-        id_pstt.setText("id");
-        p_4.add(id_pstt, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 150, 40, 20));
 
         jLabel34.setFont(new java.awt.Font("Times New Roman", 1, 24)); // NOI18N
         jLabel34.setText("Puestos");
@@ -805,9 +868,6 @@ public class abp_index extends javax.swing.JFrame {
         p_5.add(d_pueblo, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 80, 120, 30));
         p_5.add(d_calle, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 80, 190, 30));
 
-        id_dir.setText("id");
-        p_5.add(id_dir, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 150, 40, 20));
-
         jLabel35.setFont(new java.awt.Font("Times New Roman", 1, 24)); // NOI18N
         jLabel35.setText("Direcciones");
         p_5.add(jLabel35, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 4, 200, 30));
@@ -872,17 +932,39 @@ public class abp_index extends javax.swing.JFrame {
         });
         jPanel1.add(jButton9, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 200, 180, 60));
 
+        jButton15.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jButton15.setIcon(new javax.swing.ImageIcon(getClass().getResource("/abp/direciones.jpg"))); // NOI18N
+        jButton15.setText("Direcciones");
+        jButton15.setMargin(new java.awt.Insets(2, 0, 2, 16));
+        jButton15.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton15ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton15, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 260, 180, 60));
+
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, 180, 430));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+    public static boolean isNumeric(String cadena) {
+        try {
+            Integer.parseInt(cadena);
+            return true;
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
 
+    }
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String nom_p, cantidad_p, tipo_p, desc_p;
+        String nom_p, cantidad_p, tipo_p, desc_p, precio_p;
         nom_p = p_nom.getText();
         cantidad_p = p_can.getText();
         tipo_p = pc_tipos.getSelectedItem().toString();
         desc_p = p_des.getText();
+        precio_p = p_precio.getText();
+        int ctt = 0;
+        int pio = 0;
 
         if (nom_p.equals("")) {
             JOptionPane.showMessageDialog(null, "es nesesaio insertar nombre");
@@ -890,56 +972,74 @@ public class abp_index extends javax.swing.JFrame {
             if (cantidad_p.equals("")) {
                 JOptionPane.showMessageDialog(null, "es nesesaio insertar cantidad");
             } else {
-                if (desc_p.equals("")) {
-                    JOptionPane.showMessageDialog(null, "es nesesaio insertar descripcion");
+                boolean cmm = isNumeric(cantidad_p);
+                if (cmm == false) {
+                    JOptionPane.showMessageDialog(null, "es nesesaio insertar cantidad con numero");
                 } else {
-                    String sql = "call inserta_productos('" + nom_p + "'," + cantidad_p + ",'" + tipo_p + "','" + desc_p + "')";
-                    try {
-                        con.operacion(sql);
-                        JOptionPane.showMessageDialog(null, "ingresado correctamente");
-                        nom_p = "";
-                        cantidad_p = "";
-                        tipo_p = "";
-                        desc_p = "";
-                        cargar_pro();
-                    } catch (Exception ex) {
-                        System.out.println(ex);
-                        JOptionPane.showMessageDialog(null, "ha ocurrido un error al ingresar");
-                        nom_p = "";
-                        cantidad_p = "";
-                        tipo_p = "";
-                        desc_p = "";
+                    if (desc_p.equals("")) {
+                        JOptionPane.showMessageDialog(null, "es nesesaio insertar descripcion");
+                    } else {
+                        if (precio_p.equals("")) {
+                            JOptionPane.showMessageDialog(null, "es nesesaio insertar precio");
+                        } else {
+                            boolean pre = isNumeric(precio_p);
+                            if (pre == false) {
+                                JOptionPane.showMessageDialog(null, "es nesesaio insertar precio con numero");
+                            } else {
+                                String sql = "call inserta_productos('" + nom_p + "'," + cantidad_p + "," + precio_p + ",'" + tipo_p + "','" + desc_p + "')";
+                                try {
+                                    con.operacion(sql);
+                                    JOptionPane.showMessageDialog(null, "ingresado correctamente");
+                                    nom_p = "";
+                                    cantidad_p = "";
+                                    precio_p = "";
+                                    tipo_p = "";
+                                    desc_p = "";
+                                    cargar_pro();
+                                } catch (Exception ex) {
+                                    System.out.println(ex);
+                                    JOptionPane.showMessageDialog(null, "ha ocurrido un error al ingresar");
+                                    nom_p = "";
+                                    cantidad_p = "";
+                                    tipo_p = "";
+                                    desc_p = "";
+                                }
+                            }
+                        }
                     }
                 }
+
             }
         }
+
     }//GEN-LAST:event_jButton1ActionPerformed
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 
-        String id_p = id.getText();
-        if (id_p == "") {
+        if (id_productos.equals("")) {
             JOptionPane.showMessageDialog(null, "No ha selecionado un procuto dentro del registro");
         } else {
-            String sql = "delete from productos where id=" + id_p + "";
+            String sql = "delete from productos where id=" + id_productos + "";
             try {
                 con.operacion(sql);
                 cargar_pro();
                 JOptionPane.showMessageDialog(null, "eliminado correctamente");
+                id_productos = "";
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, "error");
+                id_productos = "";
             }
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        String id_p, nom_p, cantidad_p, tipo_p, desc_p;
-        id_p = id.getText();
+        String id_p, nom_p, cantidad_p, tipo_p, desc_p, precio_p;
         nom_p = p_nom.getText();
         cantidad_p = p_can.getText();
         tipo_p = pc_tipos.getSelectedItem().toString();
         desc_p = p_des.getText();
-        if (id_p == "") {
-            JOptionPane.showMessageDialog(null, "No ha selecionado un procuto dentro del registro");
+        precio_p = p_precio.getText();
+        if (id_productos.equals("")) {
+            JOptionPane.showMessageDialog(null, "No ha selecionado un registro");
         } else {
             if (nom_p.equals("")) {
                 JOptionPane.showMessageDialog(null, "es nesesaio insertar nombre");
@@ -947,25 +1047,42 @@ public class abp_index extends javax.swing.JFrame {
                 if (cantidad_p.equals("")) {
                     JOptionPane.showMessageDialog(null, "es nesesaio insertar cantidad");
                 } else {
-                    if (desc_p.equals("")) {
-                        JOptionPane.showMessageDialog(null, "es nesesaio insertar descripcion");
+                    boolean pre = isNumeric(cantidad_p);
+                    if (pre == false) {
+                        JOptionPane.showMessageDialog(null, "es nesesaio insertar cantidad con numero");
                     } else {
-                        String sql = "call actualiza_productos(" + id_p + ",'" + nom_p + "'," + cantidad_p + ",'" + tipo_p + "','" + desc_p + "')";
-                        try {
-                            con.operacion(sql);
-                            JOptionPane.showMessageDialog(null, "Actualizado correctamente");
-                            cargar_pro();
-                            nom_p = "";
-                            cantidad_p = "";
-                            tipo_p = "";
-                            desc_p = "";
-                        } catch (Exception ex) {
-                            System.out.println(ex);
-                            JOptionPane.showMessageDialog(null, "ha ocurrido un error al actualizar");
-                            nom_p = "";
-                            cantidad_p = "";
-                            tipo_p = "";
-                            desc_p = "";
+                        if (desc_p.equals("")) {
+                            JOptionPane.showMessageDialog(null, "es nesesaio insertar descripcion");
+                        } else {
+                            if (precio_p.equals("")) {
+                                JOptionPane.showMessageDialog(null, "es nesesaio insertar precio");
+                            } else {
+                                boolean prec = isNumeric(precio_p);
+                                if (prec == false) {
+                                    JOptionPane.showMessageDialog(null, "es nesesaio insertar precio con numero");
+                                } else {
+
+                                    String sql = "call actualiza_productos(" + id_productos + ",'" + nom_p + "'," + cantidad_p + "," + precio_p + ",'" + tipo_p + "','" + desc_p + "')";
+                                    try {
+                                        con.operacion(sql);
+                                        JOptionPane.showMessageDialog(null, "Actualizado correctamente");
+                                        cargar_pro();
+                                        nom_p = "";
+                                        cantidad_p = "";
+                                        tipo_p = "";
+                                        desc_p = "";
+                                        id_productos = "";
+                                    } catch (Exception ex) {
+                                        System.out.println(ex);
+                                        JOptionPane.showMessageDialog(null, "ha ocurrido un error al actualizar");
+                                        nom_p = "";
+                                        cantidad_p = "";
+                                        tipo_p = "";
+                                        id_productos = "";
+                                        desc_p = "";
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -979,11 +1096,12 @@ public class abp_index extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
     private void t_proMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_t_proMouseClicked
         int col = t_pro.getSelectedRow();
-        id.setText(t_pro.getModel().getValueAt(col, 0).toString());
+        id_productos = (t_pro.getModel().getValueAt(col, 0).toString());
         p_nom.setText(t_pro.getModel().getValueAt(col, 1).toString());
         p_can.setText(t_pro.getModel().getValueAt(col, 2).toString());
-        pc_tipos.setSelectedItem(t_pro.getModel().getValueAt(col, 3).toString());
-        p_des.setText(t_pro.getModel().getValueAt(col, 4).toString());
+        p_precio.setText(t_pro.getModel().getValueAt(col, 3).toString());
+        pc_tipos.setSelectedItem(t_pro.getModel().getValueAt(col, 4).toString());
+        p_des.setText(t_pro.getModel().getValueAt(col, 5).toString());
 
     }//GEN-LAST:event_t_proMouseClicked
 
@@ -1017,7 +1135,7 @@ public class abp_index extends javax.swing.JFrame {
 
     private void t_empleadosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_t_empleadosMouseClicked
         int col = t_empleados.getSelectedRow();
-        id_e.setText(t_empleados.getModel().getValueAt(col, 0).toString());
+        id_empleados = (t_empleados.getModel().getValueAt(col, 0).toString());
         e_nom.setText(t_empleados.getModel().getValueAt(col, 1).toString());
         e_ap.setText(t_empleados.getModel().getValueAt(col, 2).toString());
         e_am.setText(t_empleados.getModel().getValueAt(col, 3).toString());
@@ -1033,45 +1151,55 @@ public class abp_index extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton10ActionPerformed
 
     private void jButton11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton11ActionPerformed
-        String nom_e, ap_e, am_e, puesto_e, edad_e,e_id;
-        
-        e_id = id_e.getText();
+        String nom_e, ap_e, am_e, puesto_e, edad_e, e_id;
+
         nom_e = e_nom.getText();
         ap_e = e_ap.getText();
         am_e = e_am.getText();
         edad_e = e_edad.getSelectedItem().toString();
         puesto_e = e_puesto.getSelectedItem().toString();
-        if (nom_e.equals("")) {
-            JOptionPane.showMessageDialog(null, "es nesesaio insertar nombre");
+        if (id_empleados.equals("")) {
+            JOptionPane.showMessageDialog(null, "No ha selecionado un registro");
         } else {
-            if (ap_e.equals("")) {
-                JOptionPane.showMessageDialog(null, "es nesesaio insertar 1er Apellido");
+            if (nom_e.equals("")) {
+                JOptionPane.showMessageDialog(null, "es nesesaio insertar nombre");
             } else {
-                if (am_e.equals("")) {
-                    JOptionPane.showMessageDialog(null, "es nesesaio insertar 2do Apellido");
+                if (ap_e.equals("")) {
+                    JOptionPane.showMessageDialog(null, "es nesesaio insertar 1er Apellido");
                 } else {
-                    try {
-                        int a = Integer.parseInt(edad_e);
-                        int b = Integer.parseInt(e_id);
-                        String r = con.procedure6(b,nom_e,ap_e,am_e,a,puesto_e);
-                        if (r == null) {
-                            JOptionPane.showMessageDialog(null, "Actualizado correctamente");
-                            cargar_emp();
-                            e_id="";nom_e= "";ap_e= "";am_e= "";edad_e= "";puesto_e = "";
-                        } else {
-                            JOptionPane.showMessageDialog(null, "" + r);
+                    if (am_e.equals("")) {
+                        JOptionPane.showMessageDialog(null, "es nesesaio insertar 2do Apellido");
+                    } else {
+                        try {
+                            int a = Integer.parseInt(edad_e);
+                            int b = Integer.parseInt(id_empleados);
+                            String r = con.procedure6(b, nom_e, ap_e, am_e, a, puesto_e);
+                            if (r == null) {
+                                JOptionPane.showMessageDialog(null, "Actualizado correctamente");
+                                cargar_emp();
+                                e_id = "";
+                                nom_e = "";
+                                ap_e = "";
+                                am_e = "";
+                                edad_e = "";
+                                puesto_e = "";
+                                id_empleados = "";
+                            } else {
+                                JOptionPane.showMessageDialog(null, "" + r);
+                            }
+                        } catch (Exception ex) {
+                            System.out.println(ex);
+                            JOptionPane.showMessageDialog(null, "ha ocurrido un error al ingresar");
+                            e_id = "";
+                            nom_e = "";
+                            ap_e = "";
+                            am_e = "";
+                            edad_e = "";
+                            puesto_e = "";
+                            id_empleados = "";
                         }
-                    } catch (Exception ex) {
-                        System.out.println(ex);
-                        JOptionPane.showMessageDialog(null, "ha ocurrido un error al ingresar");
-                        e_id="";
-                        nom_e = "";
-                        ap_e = "";
-                        am_e = "";
-                        edad_e = "";
-                        puesto_e = "";
-                    }
 
+                    }
                 }
             }
         }
@@ -1079,16 +1207,18 @@ public class abp_index extends javax.swing.JFrame {
 
     private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton12ActionPerformed
         String id_em = id_e.getText();
-        if (id_em == "") {
-            JOptionPane.showMessageDialog(null, "No ha selecionado una direccion dentro del registro");
+        if (id_empleados.equals("")) {
+            JOptionPane.showMessageDialog(null, "No ha selecionado un registro");
         } else {
-            String sql = "delete from personal where id=" + id_em + "";
+            String sql = "delete from personal where id=" + id_empleados + "";
             try {
                 con.operacion(sql);
                 cargar_emp();
+                id_empleados = "";
                 JOptionPane.showMessageDialog(null, "eliminado correctamente");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, "error");
+                id_empleados = "";
             }
         }
 
@@ -1112,11 +1242,15 @@ public class abp_index extends javax.swing.JFrame {
                 } else {
                     try {
                         int a = Integer.parseInt(edad_e);
-                        String r = con.procedure5(nom_e,ap_e,am_e,a,puesto_e);
+                        String r = con.procedure5(nom_e, ap_e, am_e, a, puesto_e);
                         if (r == null) {
                             JOptionPane.showMessageDialog(null, "Ingresado correctamente");
                             cargar_emp();
-                            nom_e= "";ap_e= "";am_e= "";edad_e= "";puesto_e = "";
+                            nom_e = "";
+                            ap_e = "";
+                            am_e = "";
+                            edad_e = "";
+                            puesto_e = "";
                         } else {
                             JOptionPane.showMessageDialog(null, "" + r);
                         }
@@ -1169,6 +1303,7 @@ public class abp_index extends javax.swing.JFrame {
         p_3.setVisible(false);
         p_4.setVisible(false);
         p_5.setVisible(false);
+
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
@@ -1177,6 +1312,7 @@ public class abp_index extends javax.swing.JFrame {
         p_3.setVisible(false);
         p_4.setVisible(true);
         p_5.setVisible(false);
+
     }//GEN-LAST:event_jButton9ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
@@ -1185,70 +1321,21 @@ public class abp_index extends javax.swing.JFrame {
         p_3.setVisible(false);
         p_4.setVisible(false);
         p_5.setVisible(true);
+
     }//GEN-LAST:event_jButton7ActionPerformed
 
     private void t_ventasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_t_ventasMouseClicked
         // TODO add your handling code here:
     }//GEN-LAST:event_t_ventasMouseClicked
 
-    private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton14ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton14ActionPerformed
-
-    private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton15ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton15ActionPerformed
-
-    private void jButton16ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton16ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton16ActionPerformed
-
-    private void jButton17ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton17ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton17ActionPerformed
-
-    private void bus_ventasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bus_ventasActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_bus_ventasActionPerformed
-
-    private void bus_ventasKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_bus_ventasKeyPressed
-        String a = bus_ventas.getText();
-        String sql = "select ventas.id,productos.nombre,ventas.cantidad,direciones.pueblo,  "
-                + "direciones.calle,personal.nombre,personal.am,personal.ap    "
-                + "from ventas,personal,direciones,productos  where ventas.id_persona=personal.id  "
-                + "and ventas.direccion=direciones.id and ventas.id_producto=productos.id and ( ventas.id like '%" + a + "%' "
-                + "or productos.nombre like '%" + a + "%' or ventas.cantidad like '%" + a + "%' or direciones.pueblo like '%" + a + "%' "
-                + "or  direciones.calle like '%" + a + "%' or  personal.nombre like '%" + a + "%' or personal.am like '%" + a + "%' "
-                + "or personal.ap like '%" + a + "%'  )";
-        model = new DefaultTableModel(null, e_vent);
-        try {
-            datosbase = con.consultar(sql);
-            while (datosbase.next()) {
-                dtven[0] = "" + datosbase.getString("ventas.id");
-                dtven[1] = "" + datosbase.getString("productos.nombre");
-                dtven[2] = "" + datosbase.getString("ventas.cantidad");
-                dtven[3] = "" + datosbase.getString("direciones.pueblo");
-                dtven[4] = "" + datosbase.getString("direciones.calle");
-                dtven[5] = "" + datosbase.getString("personal.nombre");
-                dtven[6] = "" + datosbase.getString("personal.am");
-                dtven[7] = "" + datosbase.getString("personal.ap");
-                model.addRow(dtven);
-            }
-            t_ventas.setModel(model);
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, ex);
-        }
-    }//GEN-LAST:event_bus_ventasKeyPressed
-
     private void t_puestosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_t_puestosMouseClicked
         int col = t_puestos.getSelectedRow();
-        id_pstt.setText(t_puestos.getModel().getValueAt(col, 0).toString());
+        id_puestos = (t_puestos.getModel().getValueAt(col, 0).toString());
         p_descripcion.setText(t_puestos.getModel().getValueAt(col, 1).toString());
 
     }//GEN-LAST:event_t_puestosMouseClicked
 
     private void jButton18ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton18ActionPerformed
-        id_pstt.setText("");
         p_descripcion.setText("");
 
 
@@ -1257,15 +1344,14 @@ public class abp_index extends javax.swing.JFrame {
     private void jButton19ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton19ActionPerformed
         String id_pst, p_descc;
         p_descc = p_descripcion.getText();
-        id_pst = id_pstt.getText();
-        if (id_pst == "") {
-            JOptionPane.showMessageDialog(null, "No se ha selecionada un puesto del registro");
+        if (id_puestos.equals("")) {
+            JOptionPane.showMessageDialog(null, "No se ha selecionada un registro");
         } else {
             if (p_descc == "") {
                 JOptionPane.showMessageDialog(null, "es nesesaio insertar descipcion");
             } else {
                 try {
-                    int a = Integer.parseInt(id_pst);
+                    int a = Integer.parseInt(id_puestos);
                     String r = con.procedure4(a, p_descc);
                     if (r == null) {
                         JOptionPane.showMessageDialog(null, "Actualizado correctamente");
@@ -1273,6 +1359,7 @@ public class abp_index extends javax.swing.JFrame {
                         e_puesto.removeAllItems();
                         combos();
                         p_descc = "";
+                        id_puestos = "";
                     } else {
                         JOptionPane.showMessageDialog(null, "" + r);
                     }
@@ -1280,25 +1367,30 @@ public class abp_index extends javax.swing.JFrame {
                     System.out.println("" + ex);
                     JOptionPane.showMessageDialog(null, "ha ocurrido un error al actualizar");
                     p_descc = "";
+                    id_puestos = "";
+
                 }
             }
         }
     }//GEN-LAST:event_jButton19ActionPerformed
 
     private void jButton20ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton20ActionPerformed
-        String id_pst = id_pstt.getText();
-        if (id_pst == "") {
-            JOptionPane.showMessageDialog(null, "No ha selecionado una direccion dentro del registro");
+
+        if (id_puestos.equals("")) {
+            JOptionPane.showMessageDialog(null, "No ha selecionado un registro");
         } else {
-            String sql = "delete from puestos where id=" + id_pst + "";
+            String sql = "delete from puestos where id=" + id_puestos + "";
             try {
                 con.operacion(sql);
                 cargar_put();
                 e_puesto.removeAllItems();
                 combos();
+                id_puestos = "";
                 JOptionPane.showMessageDialog(null, "eliminado correctamente");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, "error");
+                id_puestos = "";
+
             }
         }
     }//GEN-LAST:event_jButton20ActionPerformed
@@ -1354,24 +1446,26 @@ public class abp_index extends javax.swing.JFrame {
 
     private void t_dirMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_t_dirMouseClicked
         int col = t_dir.getSelectedRow();
-        id_dir.setText(t_dir.getModel().getValueAt(col, 0).toString());
+        id_direcion = (t_dir.getModel().getValueAt(col, 0).toString());
         d_pueblo.setText(t_dir.getModel().getValueAt(col, 1).toString());
         d_calle.setText(t_dir.getModel().getValueAt(col, 2).toString());
 
     }//GEN-LAST:event_t_dirMouseClicked
 
     private void jButton22ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton22ActionPerformed
-        id_dir.setText("");
+
         d_pueblo.setText("");
         d_calle.setText("");
     }//GEN-LAST:event_jButton22ActionPerformed
 
     private void jButton23ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton23ActionPerformed
+
         String id_di, d_pu, d_call;
-        id_di = id_dir.getText();
+
         d_pu = d_pueblo.getText();
         d_call = d_calle.getText();
-        if (id_di == "") {
+
+        if (id_direcion.equals("")) {
             JOptionPane.showMessageDialog(null, "No ha selecionado una direcion dentro del registro");
         } else {
             if (d_pu.equals("")) {
@@ -1382,7 +1476,7 @@ public class abp_index extends javax.swing.JFrame {
                 } else {
 
                     try {
-                        int a = Integer.parseInt(id_di);
+                        int a = Integer.parseInt(id_direcion);
                         String r = con.procedure2(a, d_pu, d_call);
                         if (r == null) {
                             JOptionPane.showMessageDialog(null, "agreagdo correctamente");
@@ -1390,6 +1484,7 @@ public class abp_index extends javax.swing.JFrame {
                             id_di = "";
                             d_pu = "";
                             d_call = "";
+                            id_direcion = "";
                         } else {
                             JOptionPane.showMessageDialog(null, "" + r);
                         }
@@ -1399,6 +1494,8 @@ public class abp_index extends javax.swing.JFrame {
                         id_di = "";
                         d_pu = "";
                         d_call = "";
+                        id_direcion = "";
+
                     }
                 }
             }
@@ -1406,17 +1503,20 @@ public class abp_index extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton23ActionPerformed
 
     private void jButton24ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton24ActionPerformed
-        String id_di = id_dir.getText();
-        if (id_di == "") {
-            JOptionPane.showMessageDialog(null, "No ha selecionado una direccion dentro del registro");
+
+        if (id_direcion.equals("")) {
+            JOptionPane.showMessageDialog(null, "No ha selecionado un registro");
         } else {
-            String sql = "delete from direciones where id=" + id_di + "";
+            String sql = "delete from direciones where id=" + id_direcion + "";
             try {
                 con.operacion(sql);
                 cargar_dir();
+                id_direcion = "";
                 JOptionPane.showMessageDialog(null, "eliminado correctamente");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, "error");
+                id_direcion = "";
+
             }
         }
     }//GEN-LAST:event_jButton24ActionPerformed
@@ -1450,8 +1550,8 @@ public class abp_index extends javax.swing.JFrame {
                 calle = "";
                 pueblo = "";
             }
-
         }
+
 
     }//GEN-LAST:event_jButton25ActionPerformed
 
@@ -1483,6 +1583,7 @@ public class abp_index extends javax.swing.JFrame {
         p_3.setVisible(true);
         p_4.setVisible(false);
         p_5.setVisible(false);
+        p_1.setVisible(false);
     }//GEN-LAST:event_jButton8ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
@@ -1491,7 +1592,175 @@ public class abp_index extends javax.swing.JFrame {
         p_3.setVisible(false);
         p_4.setVisible(false);
         p_5.setVisible(false);
+
     }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void bus_ventasKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_bus_ventasKeyPressed
+        String a = bus_ventas.getText();
+        String sql = "select ventas.id,productos.nombre,ventas.cantidad,direciones.pueblo,  "
+                + "direciones.calle,personal.nombre,personal.am,personal.ap    "
+                + "from ventas,personal,direciones,productos  where ventas.id_persona=personal.id  "
+                + "and ventas.direccion=direciones.id and ventas.id_producto=productos.id and ( ventas.id like '%" + a + "%' "
+                + "or productos.nombre like '%" + a + "%' or ventas.cantidad like '%" + a + "%' or direciones.pueblo like '%" + a + "%' "
+                + "or  direciones.calle like '%" + a + "%' or  personal.nombre like '%" + a + "%' or personal.am like '%" + a + "%' "
+                + "or personal.ap like '%" + a + "%'  )";
+        model = new DefaultTableModel(null, e_vent);
+        try {
+            datosbase = con.consultar(sql);
+            while (datosbase.next()) {
+                dtven[0] = "" + datosbase.getString("ventas.id");
+                dtven[1] = "" + datosbase.getString("productos.nombre");
+                dtven[2] = "" + datosbase.getString("ventas.cantidad");
+                dtven[3] = "" + datosbase.getString("direciones.pueblo");
+                dtven[4] = "" + datosbase.getString("direciones.calle");
+                dtven[5] = "" + datosbase.getString("personal.nombre");
+                dtven[6] = "" + datosbase.getString("personal.am");
+                dtven[7] = "" + datosbase.getString("personal.ap");
+                model.addRow(dtven);
+            }
+            t_ventas.setModel(model);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, ex);
+        }
+    }//GEN-LAST:event_bus_ventasKeyPressed
+
+    private void bus_ventasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bus_ventasActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_bus_ventasActionPerformed
+
+    private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton15ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton15ActionPerformed
+
+    private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton14ActionPerformed
+        String p = lista_p.getSelectedItem().toString();
+        String cd = cantidad.getText();
+
+        //
+        if (cd.equals("")) {
+            JOptionPane.showMessageDialog(null, "es nesesaio insertar cantidad con numero");
+        } else {
+            boolean pre = isNumeric(cd);
+            if (pre == false) {
+                JOptionPane.showMessageDialog(null, "es nesesaio insertar cantidad con numero");
+            } else {
+                try {
+                    int a = 0;
+                    a = Integer.parseInt(cd);
+                    String sql = "insert into p (nombre,cantidad)values('" + p + "'," + a + ")";
+                    con.operacion(sql);
+                    cargar_lista();
+                    p = "";
+                    cd = "";
+                    cantidad.setText("");
+                } catch (Exception ex) {
+                    System.out.println("aqui" + ex);
+                    JOptionPane.showMessageDialog(null, "ha ocurrido un error al actualizar");
+                    p = "";
+                    cd = "";
+                }
+            }
+        }
+
+    }//GEN-LAST:event_jButton14ActionPerformed
+
+    private void jButton16ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton16ActionPerformed
+        if (prod == "") {
+            JOptionPane.showMessageDialog(null, "No ha selecionado un procuto de la lista");
+        } else {
+            String sql = "delete from p where id=" + prod + "";
+            try {
+                con.operacion(sql);
+                cargar_lista();
+                prod = "";
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(null, "error");
+            }
+        }
+    }//GEN-LAST:event_jButton16ActionPerformed
+
+    private void listaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listaMouseClicked
+        int col = lista.getSelectedRow();
+        prod = (lista.getModel().getValueAt(col, 0).toString());
+
+    }//GEN-LAST:event_listaMouseClicked
+
+    private void cobrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cobrarActionPerformed
+
+        String sql = "SELECT nombre,CANTIDAD FROM P";
+        String sql1 = "select count(cantidad) as a from p";
+        String mat[] = new String[2];
+        String idmat[] = new String[2];
+        String sqlid = "SELECT `AUTO_INCREMENT` as id  FROM  INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'made' AND TABLE_NAME  = 'ventas'";
+        try {
+            datosbase = con.consultar(sqlid);
+            while (datosbase.next()) {
+                idmat[0] = "" + datosbase.getString("id");
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "error");
+        }
+        String id = idmat[0];
+        int nid = Integer.parseInt(id);
+        try {
+            datosbase = con.consultar(sql1);
+            while (datosbase.next()) {
+                mat[0] = "" + datosbase.getString("a");
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "error");
+        }
+        String g = mat[0];
+        int a = Integer.parseInt(g);
+        int i = 0;
+        try {
+            datosbase = con.consultar(sql);
+            prod = "";
+            while (datosbase.next()) {
+                productol[i] = "" + datosbase.getString("nombre");
+                cantidadd[i] = "" + datosbase.getString("cantidad");
+                i++;
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "error");
+        }
+        int suma = 0;
+        String ticket = "";
+        for (int j = 0; j < a; j++) {
+            try {
+                String x = productol[j].toString();
+                int y = Integer.parseInt(cantidadd[j]);
+                String r = con.procedure7(nid, x, y);
+                suma += Integer.parseInt(r);
+
+            } catch (Exception ex) {
+                System.out.println(ex);
+                JOptionPane.showMessageDialog(null, "ha ocurrido un error al ingresar");
+            }
+        }
+        try {
+            con.operacion("truncate table P");
+        } catch (Exception ex) {
+            System.out.println(ex);
+            JOptionPane.showMessageDialog(null, "ha ocurrido un error al ingresar");
+        }
+
+        ticket = "" + suma;
+        JOptionPane.showMessageDialog(null, "Total= " + ticket);
+        String dir = direcion.getSelectedItem().toString();
+        try {
+            String sqlin = "call inserta_ventas(" + suma + ",'" + dir + "','Manuela Sonia')";
+            con.operacion(sqlin);
+        } catch (Exception ex) {
+            System.out.println("aqui" + ex);
+            JOptionPane.showMessageDialog(null, "comprar");
+        }
+        cargar_lista();
+        cargar_vent();
+
+
+    }//GEN-LAST:event_cobrarActionPerformed
+
     public static void main(String args[]) {
 
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -1526,18 +1795,17 @@ public class abp_index extends javax.swing.JFrame {
     private javax.swing.JTextField bus_p;
     private javax.swing.JTextField bus_puestos;
     private javax.swing.JTextField bus_ventas;
+    private javax.swing.JTextField cantidad;
+    private javax.swing.JButton cobrar;
     private javax.swing.JTextField d_calle;
     private javax.swing.JTextField d_pueblo;
+    private javax.swing.JComboBox<String> direcion;
     private javax.swing.JTextField e_am;
     private javax.swing.JTextField e_ap;
     private javax.swing.JComboBox<String> e_edad;
     private javax.swing.JTextField e_nom;
     private javax.swing.JComboBox<String> e_puesto;
-    private javax.swing.JLabel id;
-    private javax.swing.JLabel id2;
-    private javax.swing.JLabel id_dir;
     private javax.swing.JLabel id_e;
-    private javax.swing.JLabel id_pstt;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
     private javax.swing.JButton jButton11;
@@ -1546,7 +1814,6 @@ public class abp_index extends javax.swing.JFrame {
     private javax.swing.JButton jButton14;
     private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton16;
-    private javax.swing.JButton jButton17;
     private javax.swing.JButton jButton18;
     private javax.swing.JButton jButton19;
     private javax.swing.JButton jButton2;
@@ -1571,13 +1838,13 @@ public class abp_index extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
+    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel25;
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel27;
@@ -1600,8 +1867,11 @@ public class abp_index extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane7;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JTable lista;
+    private javax.swing.JComboBox<String> lista_p;
     private javax.swing.JLabel n_emp;
-    private javax.swing.JLabel n_emp2;
     private javax.swing.JLabel n_emp3;
     private javax.swing.JLabel n_emp4;
     private javax.swing.JPanel p_1;
@@ -1610,14 +1880,11 @@ public class abp_index extends javax.swing.JFrame {
     private javax.swing.JPanel p_4;
     private javax.swing.JPanel p_5;
     private javax.swing.JTextField p_can;
-    private javax.swing.JTextField p_can2;
     private javax.swing.JTextField p_des;
-    private javax.swing.JTextField p_des2;
     private javax.swing.JTextField p_descripcion;
     private javax.swing.JTextField p_nom;
-    private javax.swing.JTextField p_nom2;
+    private javax.swing.JTextField p_precio;
     private javax.swing.JComboBox<String> pc_tipos;
-    private javax.swing.JComboBox<String> pc_tipos2;
     private javax.swing.JTable t_dir;
     private javax.swing.JTable t_empleados;
     private javax.swing.JTable t_pro;
