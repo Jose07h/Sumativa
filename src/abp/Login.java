@@ -34,18 +34,22 @@ public class Login extends javax.swing.JFrame {
         a1 = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        jButton1.setBackground(new java.awt.Color(243, 222, 145));
+        jButton1.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(11, 11, 11));
         jButton1.setText("Entrar");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 240, -1, -1));
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 240, 100, 30));
 
         a2.setToolTipText("Contraseña");
         getContentPane().add(a2, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 200, 150, 30));
@@ -54,13 +58,17 @@ public class Login extends javax.swing.JFrame {
         getContentPane().add(a1, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 170, 150, 30));
 
         jLabel2.setFont(new java.awt.Font("Times New Roman", 1, 36)); // NOI18N
-        jLabel2.setText("Madederia Martinez");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 0, 350, 50));
+        jLabel2.setText("El Roble");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 40, 350, 50));
 
         jLabel3.setFont(new java.awt.Font("Times New Roman", 1, 24)); // NOI18N
         jLabel3.setForeground(new java.awt.Color(255, 51, 51));
         jLabel3.setText("Datos erroneos");
         getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 110, 170, 40));
+
+        jLabel4.setFont(new java.awt.Font("Times New Roman", 1, 36)); // NOI18N
+        jLabel4.setText("Madederia");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 0, 200, 50));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/abp/1.jpg"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 460, 300));
@@ -127,6 +135,7 @@ public class Login extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollBar jScrollBar1;
     // End of variables declaration//GEN-END:variables
 }

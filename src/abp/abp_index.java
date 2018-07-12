@@ -1746,18 +1746,27 @@ public class abp_index extends javax.swing.JFrame {
         }
 
         ticket = "" + suma;
-        JOptionPane.showMessageDialog(null, "Total= " + ticket);
-        String dir = direcion.getSelectedItem().toString();
-        try {
-            String sqlin = "call inserta_ventas(" + suma + ",'" + dir + "','Manuela Sonia')";
-            con.operacion(sqlin);
-        } catch (Exception ex) {
-            System.out.println("aqui" + ex);
-            JOptionPane.showMessageDialog(null, "comprar");
-        }
-        cargar_lista();
-        cargar_vent();
-
+        int total = Integer.parseInt(ticket);
+        int cambio=0;
+        while (cambio < total) {
+             cambio = Integer.parseInt(JOptionPane.showInputDialog("Total "+ticket+"\nIngrese el importe importe "));
+             if (cambio < total) {
+                 JOptionPane.showMessageDialog(null, "El importe deve de ser mayor o igual al total");
+            }
+            
+        }    
+            JOptionPane.showMessageDialog(null, "Cambio= " + (cambio-total));
+            String dir = direcion.getSelectedItem().toString();
+            try {
+                String sqlin = "call inserta_ventas(" + suma + ",'" + dir + "','Manuela Sonia')";
+                con.operacion(sqlin);
+            } catch (Exception ex) {
+                System.out.println("aqui" + ex);
+                JOptionPane.showMessageDialog(null, "comprar");
+            }
+            cargar_lista();
+            cargar_vent();
+        
 
     }//GEN-LAST:event_cobrarActionPerformed
 

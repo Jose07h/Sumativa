@@ -7,9 +7,8 @@ create table direciones(id int primary key auto_increment, pueblo varchar(30),ca
 create table productos(id int primary key auto_increment,nombre varchar(30),cantidad int,precio int,id_tipo int ,descripcion varchar(100));
 create table personal(id int primary key auto_increment,nombre varchar(30),ap varchar(30),am varchar(30),edad int ,id_puesto int);
 create table ventas(id int primary key auto_increment,total int, direccion varchar(50),id_persona int);
-drop table ventas;
 create table asigna_pro(id int primary key auto_increment, id_venta varchar(30),id_producto int);
-
+create table p(id int primary key auto_increment,nombre varchar(30),cantidad int);
 insert into tipos values(1,'madera dura');
 insert into tipos values(2,'madera blanda');
 
@@ -201,10 +200,6 @@ set res=cp*can;
 select res;
 END $
 DELIMITER ;
-
-call comprar(302,'Cedro',10);
-select * from productos;
-select * from asigna_pro;
 
 DROP PROCEDURE IF EXISTs inserta_ventas;
 DELIMITER $

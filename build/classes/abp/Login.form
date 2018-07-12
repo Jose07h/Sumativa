@@ -31,6 +31,15 @@
   <SubComponents>
     <Component class="javax.swing.JButton" name="jButton1">
       <Properties>
+        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+          <Color blue="91" green="de" red="f3" type="rgb"/>
+        </Property>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Times New Roman" size="18" style="1"/>
+        </Property>
+        <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+          <Color blue="b" green="b" red="b" type="rgb"/>
+        </Property>
         <Property name="text" type="java.lang.String" value="Entrar"/>
       </Properties>
       <Events>
@@ -38,7 +47,7 @@
       </Events>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-          <AbsoluteConstraints x="360" y="240" width="-1" height="-1"/>
+          <AbsoluteConstraints x="330" y="240" width="100" height="30"/>
         </Constraint>
       </Constraints>
     </Component>
@@ -67,11 +76,11 @@
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Times New Roman" size="36" style="1"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Madederia Martinez"/>
+        <Property name="text" type="java.lang.String" value="El Roble"/>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-          <AbsoluteConstraints x="110" y="0" width="350" height="50"/>
+          <AbsoluteConstraints x="160" y="40" width="350" height="50"/>
         </Constraint>
       </Constraints>
     </Component>
@@ -88,6 +97,19 @@
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
           <AbsoluteConstraints x="200" y="110" width="170" height="40"/>
+        </Constraint>
+      </Constraints>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel4">
+      <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Times New Roman" size="36" style="1"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="Madederia"/>
+      </Properties>
+      <Constraints>
+        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
+          <AbsoluteConstraints x="140" y="0" width="200" height="50"/>
         </Constraint>
       </Constraints>
     </Component>
